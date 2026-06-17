@@ -19,8 +19,6 @@ Engineered by RP
 <p style="margin: 25px 0;">
 <img src="https://img.shields.io/badge/JavaScript-Vanilla_ES6-f7df1e?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS">
 <img src="https://img.shields.io/badge/Tailwind_CSS-v3.0-06b6d4?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
-<img src="https://img.shields.io/badge/UX%2FUI-Premium_Dark-6366f1?style=for-the-badge" alt="Premium Theme">
-<img src="https://img.shields.io/badge/Security-XSS_Mitigated-10b981?style=for-the-badge" alt="Security Hardened">
 </p>
 
 
