@@ -14,12 +14,14 @@ Engineered by RP
 <strong>The Document-to-Action Reactive Dashboard Interface</strong>
 </p>
 
+
 <p style="margin: 25px 0;">
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"><img src="https://img.shields.io/badge/JavaScript-Vanilla_ES6-f7df1e?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS"></a>
-<a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-v3.0-06b6d4?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
-<a href="https://github.com/"><img src="https://img.shields.io/badge/UX%2FUI-Premium_Dark-6366f1?style=for-the-badge" alt="Premium Theme"></a>
-<a href="https://github.com/"><img src="https://img.shields.io/badge/Security-XSS_Mitigated-10b981?style=for-the-badge" alt="Security Hardened"></a>
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank"><img src="https://img.shields.io/badge/JavaScript-Vanilla_ES6-f7df1e?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS"></a>
+<a href="https://tailwindcss.com/" target="_blank"><img src="https://img.shields.io/badge/Tailwind_CSS-v3.0-06b6d4?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS"></a>
+<img src="https://img.shields.io/badge/UX%2FUI-Premium_Dark-6366f1?style=for-the-badge" alt="Premium Theme">
+<img src="https://img.shields.io/badge/Security-XSS_Mitigated-10b981?style=for-the-badge" alt="Security Hardened">
 </p>
+
 
 <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 20px; border-radius: 16px; max-width: 700px; margin: 0 auto;">
 <p style="color: #cbd5e1; font-size: 1.1em; line-height: 1.6; margin: 0;">
