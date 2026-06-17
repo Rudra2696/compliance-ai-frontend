@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceAI — Document-to-Action Agent</title>
+    <meta name="description" content="AI-powered compliance document analyzer that extracts obligations and maps them to actionable department checklists.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-surface-0 text-white font-sans min-h-screen bg-mesh">
+
+    <!-- ===== NAVBAR ===== -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 glass border-b border-brand-500/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-lg shadow-brand-500/25">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">Compliance<span class="gradient-text">AI</span></h1>
+                    <p class="text-[11px] text-slate-500 -mt-0.5 tracking-wide uppercase">Document-to-Action Agent</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="status-indicator" class="flex items-center gap-2 px-3 py-1.5 rounded-full glass-light text-xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
+                    <span class="text-slate-400">System Ready</span>
+                </div>
+                <button class="w-9 h-9 rounded-lg glass-light flex items-center justify-center hover:bg-brand-500/10 transition-colors" title="Settings">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+
+        <!-- ===== UPLOAD SECTION ===== -->
+        <section id="upload-section" class="animate-fade-in">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-extrabold tracking-tight mb-3">
+                    Transform <span class="gradient-text">Compliance Documents</span><br>into Actionable Tasks
+                </h2>
+                <p class="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+                    Upload a policy PDF and our AI agent will extract obligations, assign departments, set priorities, and generate a complete action plan in seconds.
+                </p>
+            </div>
+
+            <!-- Upload Zone -->
+            <div id="upload-zone" class="upload-zone max-w-2xl mx-auto border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center cursor-pointer hover:border-brand-500/50 group relative overflow-hidden" onclick="document.getElementById('file-input').click()">
+                <div class="absolute inset-0 bg-gradient-to-br from-brand-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <input type="file" id="file-input" accept=".pdf" class="hidden" onchange="handleFileUpload(event)">
+                <div class="relative z-10">
+                    <div class="w-20 h-20 rounded-2xl bg-surface-2 border border-brand-500/10 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-10 h-10 text-brand-400 group-hover:text-brand-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                    </div>
+                    <p class="text-white font-semibold text-lg mb-1">Drop your compliance PDF here</p>
+                    <p class="text-slate-500 text-sm">or <span class="text-brand-400 underline underline-offset-4 decoration-brand-400/40">browse files</span> from your computer</p>
+                    <p class="text-slate-600 text-xs mt-3">Supports PDF • Max 50MB</p>
+                </div>
+            </div>
+
+            <!-- OR use demo -->
+            <div class="text-center mt-6">
+                <p class="text-slate-600 text-sm mb-3">— or try with a sample document —</p>
+                <button id="demo-btn" onclick="runDemo()" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold text-sm hover:from-brand-500 hover:to-brand-400 transition-all duration-300 shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5 active:translate-y-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Analyze Sample: GDPR Data Privacy Policy
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== PROCESSING STATE ===== -->
+        <section id="processing-section" class="hidden max-w-2xl mx-auto">
+            <div class="glass rounded-2xl p-10 text-center animate-fade-in">
+                <!-- Animated scanner -->
+                <div class="relative w-32 h-40 mx-auto mb-8">
+                    <div class="absolute inset-0 rounded-xl border border-brand-500/20 bg-surface-2 overflow-hidden">
+                        <!-- Document lines -->
+                        <div class="space-y-2 p-4 pt-5">
+                            <div class="h-1.5 rounded bg-slate-700/50 w-full"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-4/5"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-full"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-3/5"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-full"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-4/5"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-2/3"></div>
+                            <div class="h-1.5 rounded bg-slate-700/50 w-full"></div>
+                        </div>
+                        <!-- Scan line -->
+                        <div class="absolute inset-x-0 h-8 bg-gradient-to-b from-brand-500/20 to-transparent animate-scan-line" id="scan-line-el"></div>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center animate-pulse">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mb-2" id="processing-title">Analyzing Document…</h3>
+                <p class="text-slate-400 text-sm mb-6" id="processing-subtitle">Our AI agent is extracting compliance obligations</p>
+
+                <!-- Progress steps -->
+                <div class="space-y-3 text-left max-w-sm mx-auto mb-8" id="processing-steps">
+                    <div class="flex items-center gap-3 text-sm step-item" data-step="0">
+                        <div class="w-5 h-5 rounded-full border-2 border-brand-500 flex items-center justify-center flex-shrink-0 step-circle">
+                            <div class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></div>
+                        </div>
+                        <span class="text-slate-300">Extracting text from PDF…</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm step-item opacity-40" data-step="1">
+                        <div class="w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center flex-shrink-0 step-circle">
+                        </div>
+                        <span class="text-slate-500">Identifying regulatory obligations…</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm step-item opacity-40" data-step="2">
+                        <div class="w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center flex-shrink-0 step-circle">
+                        </div>
+                        <span class="text-slate-500">Mapping tasks to departments…</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm step-item opacity-40" data-step="3">
+                        <div class="w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center flex-shrink-0 step-circle">
+                        </div>
+                        <span class="text-slate-500">Generating action plan…</span>
+                    </div>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="w-full bg-surface-3 rounded-full h-2 overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-brand-600 to-brand-400 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                </div>
+                <p class="text-slate-600 text-xs mt-2" id="progress-text">0% complete</p>
+            </div>
+        </section>
+
+        <!-- ===== DASHBOARD ===== -->
+        <section id="dashboard-section" class="hidden">
+
+            <!-- Document Summary Header -->
+            <div id="doc-summary" class="glass rounded-2xl p-6 mb-8 animate-slide-down">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold" id="doc-title">Analysis Complete</h2>
+                            <p class="text-slate-400 text-sm" id="doc-description">Document processed successfully</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="exportTasks()" class="flex items-center gap-2 px-4 py-2 rounded-lg glass-light text-sm text-slate-300 hover:text-white hover:bg-brand-500/10 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Export
+                        </button>
+                        <button onclick="resetApp()" class="flex items-center gap-2 px-4 py-2 rounded-lg glass-light text-sm text-slate-300 hover:text-white hover:bg-brand-500/10 transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            New Analysis
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- Filled by JS -->
+            </div>
+
+            <!-- Department Tabs -->
+            <div class="flex flex-wrap gap-2 mb-6" id="department-tabs">
+                <button class="department-tab active px-4 py-2 rounded-xl text-sm font-medium" data-dept="all" onclick="filterDepartment('all', this)">
+                    All Tasks
+                </button>
+                <!-- Filled by JS -->
+            </div>
+
+            <!-- Tasks Grid -->
+            <div id="tasks-container" class="space-y-4">
+                <!-- Filled by JS -->
+            </div>
+
+            <!-- Compliance Score -->
+            <div id="compliance-footer" class="mt-10 glass rounded-2xl p-6 text-center">
+                <p class="text-slate-500 text-xs uppercase tracking-widest mb-2">Estimated Compliance Readiness</p>
+                <div class="flex items-center justify-center gap-4">
+                    <div class="relative w-24 h-24">
+                        <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" stroke="#1a1a35" stroke-width="8" fill="none"/>
+                            <circle id="score-ring" cx="50" cy="50" r="42" stroke="url(#scoreGrad)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="263.89" stroke-dashoffset="263.89" style="transition: stroke-dashoffset 1.5s ease-out;"/>
+                            <defs>
+                                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#6366f1"/>
+                                    <stop offset="100%" stop-color="#a78bfa"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span id="score-text" class="absolute inset-0 flex items-center justify-center text-2xl font-bold gradient-text">0%</span>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-white font-semibold" id="score-label">Getting Started</p>
+                        <p class="text-slate-500 text-sm" id="score-sublabel">Complete the tasks to improve your score</p>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="border-t border-slate-800/50 py-6 text-center">
+        <p class="text-slate-600 text-xs">ComplianceAI Agent &middot; Built for Hackathon Demo &middot; Powered by LLM Intelligence</p>
+    </footer>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 glass rounded-xl p-4 shadow-2xl shadow-black/40 flex items-center gap-3 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none max-w-sm">
+        <div id="toast-icon" class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+        <div>
+            <p id="toast-title" class="text-sm font-semibold"></p>
+            <p id="toast-msg" class="text-xs text-slate-400"></p>
+        </div>
+    </div>
+
+</body>
+</html>
