@@ -1,0 +1,29 @@
+
+# Environment and secrets (should never be committed)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node modules (if any npm packages are ever added)
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*

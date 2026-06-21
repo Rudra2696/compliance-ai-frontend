@@ -1,6 +1,3 @@
-// =====================================================================
-//  SIMULATED AI RESPONSE — Realistic GDPR Data Privacy Policy Analysis
-// =====================================================================
 const SIMULATED_RESPONSE = {
     document: {
         title: "GDPR Data Privacy & Protection Policy 2026",

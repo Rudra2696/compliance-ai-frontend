@@ -1,7 +1,4 @@
-// =====================================================================
-//  SECURITY HELPERS
-// =====================================================================
-
+window.currentFilter = 'all';
 function escapeHTML(str) {
     if (str == null) return '';
     return String(str)
@@ -12,26 +9,21 @@ function escapeHTML(str) {
         .replace(/'/g, '&#39;');
 }
 
-// =====================================================================
-//  UI RENDERING FUNCTIONS
-// =====================================================================
-
 function showDashboard(data) {
     window.taskData = data;
     const dashboard = document.getElementById('dashboard-section');
-    dashboard.classList.remove('hidden');
-
-    // Update status
-    document.getElementById('status-indicator').innerHTML = `
-        <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
-        <span class="text-slate-400">Analysis Complete</span>
-    `;
-
-    // Document summary (Escaping title and description just to be safe)
-    document.getElementById('doc-title').textContent = escapeHTML(data.document.title);
-    document.getElementById('doc-description').textContent = escapeHTML(data.summary);
-
-    // Stats
+    if (dashboard) dashboard.classList.remove('hidden');
+    const statusInd = document.getElementById('status-indicator');
+    if (statusInd) {
+        statusInd.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
+            <span class="text-slate-400">Analysis Complete</span>
+        `;
+    }
+    const titleEl = document.getElementById('doc-title');
+    const descEl = document.getElementById('doc-description');
+    if (titleEl) titleEl.innerHTML = escapeHTML(data.document.title).replace(/&amp;/g, '&');
+    if (descEl) descEl.textContent = escapeHTML(data.summary);
     const totalTasks = data.departments.reduce((sum, d) => sum + d.tasks.length, 0);
     const criticalTasks = data.departments.reduce((sum, d) => sum + d.tasks.filter(t => t.priority === 'critical').length, 0);
     const stats = [
@@ -40,50 +32,44 @@ function showDashboard(data) {
         { label: 'Departments', value: data.departments.length, icon: '🏢', color: 'from-amber-500/20 to-amber-600/5' },
         { label: 'Risk Level', value: escapeHTML(data.document.riskLevel), icon: '⚠️', color: 'from-orange-500/20 to-orange-600/5' }
     ];
-
-    document.getElementById('stats-grid').innerHTML = stats.map((s, i) => `
-        <div class="stat-card glass rounded-xl p-5 animate-slide-up stagger-${i + 1}" style="opacity:0">
-            <div class="flex items-center justify-between mb-3">
-                <span class="text-2xl">${s.icon}</span>
-                <span class="text-[10px] uppercase tracking-widest text-slate-500">${escapeHTML(s.label)}</span>
+    const statsGrid = document.getElementById('stats-grid');
+    if (statsGrid) {
+        statsGrid.innerHTML = stats.map((s, i) => `
+            <div class="stat-card glass rounded-xl p-5 transition-all duration-500 transform translate-y-0 opacity-100">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-2xl">${s.icon}</span>
+                    <span class="text-[10px] uppercase tracking-widest text-slate-500">${escapeHTML(s.label)}</span>
+                </div>
+                <p class="text-3xl font-extrabold">${s.value}</p>
             </div>
-            <p class="text-3xl font-extrabold animate-count-up">${s.value}</p>
-        </div>
-    `).join('');
-
-    // Department tabs
+        `).join('');
+    }
     const tabsContainer = document.getElementById('department-tabs');
-    data.departments.forEach((dept, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'department-tab px-4 py-2 rounded-xl text-sm font-medium text-slate-400';
-        btn.dataset.dept = dept.name;
-        btn.innerHTML = `${dept.icon} ${escapeHTML(dept.name)}`;
-        btn.onclick = function() { filterDepartment(dept.name, this); };
-        tabsContainer.appendChild(btn);
-    });
-
-    // Render all tasks
+    if (tabsContainer) {
+        tabsContainer.innerHTML = `<button class="department-tab active px-4 py-2 rounded-xl text-sm font-medium" data-dept="all" onclick="filterDepartment('all', this)">All Tasks</button>`;
+        data.departments.forEach(dept => {
+            const btn = document.createElement('button');
+            btn.className = 'department-tab px-4 py-2 rounded-xl text-sm font-medium text-slate-400';
+            btn.dataset.dept = dept.name;
+            btn.innerHTML = `${dept.icon} ${escapeHTML(dept.name)}`;
+            btn.onclick = function() { filterDepartment(dept.name, this); };
+            tabsContainer.appendChild(btn);
+        });
+    }
     renderTasks(data.departments);
-
-    // Animate compliance score
-    setTimeout(() => updateComplianceScore(), 800);
-
-    showToast('success', 'Analysis Complete', `${totalTasks} obligations extracted across ${data.departments.length} departments.`);
+    setTimeout(() => updateComplianceScore(), 400);
+    showToast('success', 'Analysis Complete', `${totalTasks} obligations mapped out successfully.`);
 }
-
 function renderTasks(departments) {
     const container = document.getElementById('tasks-container');
+    if (!container) return;
     container.innerHTML = '';
-
     const filteredDepts = window.currentFilter === 'all'
         ? departments
         : departments.filter(d => d.name === window.currentFilter);
-
     filteredDepts.forEach((dept, deptIdx) => {
         const section = document.createElement('div');
-        section.className = `animate-slide-up stagger-${Math.min(deptIdx + 1, 5)}`;
-        section.style.opacity = '0';
-
+        section.className = "transition-all duration-500 transform translate-y-0 opacity-100 mb-6";
         section.innerHTML = `
             <div class="flex items-center gap-3 mb-4 mt-${deptIdx > 0 ? '8' : '2'}">
                 <span class="text-xl">${dept.icon}</span>
@@ -98,7 +84,6 @@ function renderTasks(departments) {
         container.appendChild(section);
     });
 }
-
 function renderTaskCard(task, color) {
     const priorityClasses = {
         critical: 'priority-critical',
@@ -106,21 +91,37 @@ function renderTaskCard(task, color) {
         medium: 'priority-medium',
         low: 'priority-low'
     };
-
-    const dueDate = new Date(task.dueDate);
-    const now = new Date();
-    const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-    const dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const isOverdue = daysLeft < 0;
-    const isUrgent = daysLeft >= 0 && daysLeft <= 14;
-
-    // Secure dynamic strings against DOM XSS vulnerabilities
+    let dateDisplay = "No deadline";
+    let dateColorClass = "text-slate-500";
+    const taskDescLower = (task.description || "").toLowerCase();
+    const isContinuous = taskDescLower.includes("continuous") || taskDescLower.includes("log of all original");
+    if (task.dueDate && task.dueDate.trim() !== "" && !isContinuous) {
+        const parts = task.dueDate.split('-');
+        if (parts.length === 3) {
+            const dueDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            dueDate.setHours(0, 0, 0, 0);
+            const timeDiff = dueDate.getTime() - now.getTime();
+            const daysLeft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            const dueDateFormatted = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            if (daysLeft < 0) {
+                dateColorClass = "text-red-400 font-medium";
+                dateDisplay = `${dueDateFormatted} (Overdue by ${Math.abs(daysLeft)}d)`;
+            } else if (daysLeft <= 14) {
+                dateColorClass = "text-amber-400 font-medium";
+                dateDisplay = `${dueDateFormatted} (${daysLeft}d left)`;
+            } else {
+                dateColorClass = "text-emerald-400";
+                dateDisplay = `${dueDateFormatted} (${daysLeft}d left)`;
+            }
+        }
+    }
     const safeId = escapeHTML(task.id);
     const safeTitle = escapeHTML(task.title);
     const safePriority = escapeHTML(task.priority);
     const safeDescription = escapeHTML(task.description);
-    const safeSourceClause = escapeHTML(task.sourceClause);
-
+    // Section hidden, Task ID restored next to the live countdown badge
     return `
         <div class="task-card glass-light rounded-xl p-5 group" id="task-${safeId}">
             <div class="flex items-start gap-4">
@@ -137,74 +138,97 @@ function renderTaskCard(task, color) {
                     </div>
                     <p class="text-slate-400 text-xs leading-relaxed mb-3 ${task.completed ? 'opacity-30' : ''}">${safeDescription}</p>
                     <div class="flex items-center gap-4 flex-wrap">
-                        <span class="flex items-center gap-1.5 text-[11px] ${isOverdue ? 'text-red-400' : isUrgent ? 'text-amber-400' : 'text-slate-500'}">
+                        <span class="flex items-center gap-1.5 text-[11px] ${dateColorClass}">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            ${dueDateFormatted} ${isOverdue ? '(Overdue)' : isUrgent ? `(${daysLeft}d left)` : ''}
+                            ${dateDisplay}
                         </span>
-                        <span class="flex items-center gap-1.5 text-[11px] text-slate-600">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-                            ${safeSourceClause}
-                        </span>
-                        <span class="text-[10px] text-slate-700 font-mono">${safeId}</span>
+                        <span class="text-[10px] text-slate-400 font-mono bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/50">${safeId}</span>
                     </div>
                 </div>
             </div>
         </div>
     `;
 }
-
-function updateComplianceScore() {
-    const all = window.taskData.departments.flatMap(d => d.tasks);
-    const done = all.filter(t => t.completed).length;
-    const pct = Math.round((done / all.length) * 100);
-
-    // Animate ring
-    const ring = document.getElementById('score-ring');
-    const circumference = 2 * Math.PI * 42;
-    ring.style.strokeDashoffset = circumference - (circumference * pct / 100);
-
-    // Animate number
-    document.getElementById('score-text').textContent = pct + '%';
-
-    // Update label
-    const label = document.getElementById('score-label');
-    const sublabel = document.getElementById('score-sublabel');
-    if (pct === 0) { label.textContent = 'Getting Started'; sublabel.textContent = 'Complete the tasks to improve your score'; }
-    else if (pct < 30) { label.textContent = 'In Progress'; sublabel.textContent = 'Good start — keep checking off tasks'; }
-    else if (pct < 60) { label.textContent = 'Making Headway'; sublabel.textContent = 'You\'re building momentum'; }
-    else if (pct < 90) { label.textContent = 'Almost There'; sublabel.textContent = 'Just a few more tasks remaining'; }
-    else { label.textContent = 'Fully Compliant'; sublabel.textContent = 'Congratulations! All obligations addressed'; }
-
-    // Update stats if visible
-    const statsValues = document.querySelectorAll('#stats-grid .stat-card');
-    if (statsValues.length >= 1) {
-        const completedStat = `${done}/${all.length}`;
+function filterDepartment(deptName, activeBtn) {
+    window.currentFilter = deptName;
+    document.querySelectorAll('.department-tab').forEach(btn => {
+        btn.classList.remove('active', 'text-white');
+        btn.classList.add('text-slate-400');
+    });
+    if (activeBtn) activeBtn.classList.add('active', 'text-white');
+    if (window.taskData && window.taskData.departments) {
+        renderTasks(window.taskData.departments);
     }
 }
-
-// =====================================================================
-//  TOAST NOTIFICATIONS
-// =====================================================================
+function updateComplianceScore() {
+    if (!window.taskData || !window.taskData.departments) return;
+    const all = window.taskData.departments.flatMap(d => d.tasks);
+    if (all.length === 0) return;
+    const done = all.filter(t => t.completed).length;
+    const pct = Math.round((done / all.length) * 100);
+    const ring = document.getElementById('score-ring');
+    if (ring) {
+        const circumference = 2 * Math.PI * 42;
+        ring.style.strokeDashoffset = circumference - (circumference * pct / 100);
+    }
+    const scoreTxt = document.getElementById('score-text');
+    if (scoreTxt) scoreTxt.textContent = pct + '%';
+    const label = document.getElementById('score-label');
+    const sublabel = document.getElementById('score-sublabel');
+    if (label && sublabel) {
+        if (pct === 0) { label.textContent = 'Getting Started'; sublabel.textContent = 'Complete the tasks to improve your score'; }
+        else if (pct < 30) { label.textContent = 'In Progress'; sublabel.textContent = 'Good start — keep checking off tasks'; }
+        else if (pct < 60) { label.textContent = 'Making Headway'; sublabel.textContent = 'You\'re building momentum'; }
+        else if (pct < 90) { label.textContent = 'Almost There'; sublabel.textContent = 'Just a few more tasks remaining'; }
+        else { label.textContent = 'Fully Compliant'; sublabel.textContent = 'Congratulations! All obligations addressed'; }
+    }
+}
 function showToast(type, title, msg) {
-    const toast = document.getElementById('toast');
-    const iconEl = document.getElementById('toast-icon');
-    document.getElementById('toast-title').textContent = title;
-    document.getElementById('toast-msg').textContent = msg;
-
+    let container = document.getElementById('centered-alert-overlay');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'centered-alert-overlay';
+        container.className = 'fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[999] transition-opacity duration-300 opacity-0 pointer-events-none';
+        container.innerHTML = `
+            <div id="centered-alert-box" class="w-full max-w-md mx-4 glass border border-slate-700 p-6 rounded-2xl shadow-2xl transform scale-95 transition-all duration-300 flex flex-col items-center text-center">
+                <div id="alert-icon-wrapper" class="w-14 h-14 rounded-full flex items-center justify-center mb-4"></div>
+                <h3 id="alert-title-text" class="text-xl font-bold text-white mb-2"></h3>
+                <p id="alert-msg-text" class="text-slate-400 text-sm leading-relaxed mb-6"></p>
+                <button onclick="closeAlertModal()" class="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 active:scale-[0.98] text-white font-medium rounded-xl transition-all">
+                    Acknowledge
+                </button>
+            </div>
+        `;
+        document.body.appendChild(container);
+    }
+    const modalBox = document.getElementById('centered-alert-box');
+    const iconEl = document.getElementById('alert-icon-wrapper');
+    document.getElementById('alert-title-text').textContent = title;
+    document.getElementById('alert-msg-text').textContent = msg;
     const icons = {
-        success: { bg: 'bg-emerald-500/20', svg: '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' },
-        error: { bg: 'bg-red-500/20', svg: '<svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' },
-        info: { bg: 'bg-brand-500/20', svg: '<svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' }
+        success: { bg: 'bg-emerald-500/20 text-emerald-400', svg: '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>' },
+        error: { bg: 'bg-red-500/20 text-red-400', svg: '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>' },
+        info: { bg: 'bg-brand-500/20 text-brand-400', svg: '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' }
     };
     const cfg = icons[type] || icons.info;
-    iconEl.className = `w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${cfg.bg}`;
+    iconEl.className = `w-14 h-14 rounded-full flex items-center justify-center mb-4 ${cfg.bg}`;
     iconEl.innerHTML = cfg.svg;
-
-    toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-    toast.classList.add('translate-y-0', 'opacity-100');
-
-    setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-        toast.classList.remove('translate-y-0', 'opacity-100');
-    }, 4000);
+    container.classList.remove('opacity-0', 'pointer-events-none');
+    container.classList.add('opacity-100');
+    if (modalBox) {
+        modalBox.classList.remove('scale-95');
+        modalBox.classList.add('scale-100');
+    }
+}
+function closeAlertModal() {
+    const container = document.getElementById('centered-alert-overlay');
+    const modalBox = document.getElementById('centered-alert-box');
+    if (container) {
+        container.classList.remove('opacity-100');
+        container.classList.add('opacity-0', 'pointer-events-none');
+        if (modalBox) {
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-95');
+        }
+    }
 }

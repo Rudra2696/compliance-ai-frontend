@@ -1,7 +1,5 @@
-// Add this right at the top of your js/app.js file:
 window.APP_CONFIG = {
-    BACKEND_URL: "http://localhost:8000",
-    ADMIN_API_KEY: "super-secret-production-key"
+    BACKEND_URL: "http://localhost:8000"
 };
 tailwind.config = {
     darkMode: 'class',
