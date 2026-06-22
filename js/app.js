@@ -10,6 +10,7 @@ function sanitizeCSV(text) {
 
 window.currentFilter = 'all';
 window.taskData = null;
+window.analysisComplete = false;
 
 function getApiKey() {
     return sessionStorage.getItem('compliance_api_key') || '';
@@ -60,24 +61,19 @@ async function handleLogin() {
     const key = input.value.trim();
 
     if (!key) {
-        showAuthError('Please enter your API key.');
+        showToast('error', 'Authentication Failed', 'Please enter your credential.');
         return;
     }
 
     // Input validation: reject excessively long or malformed keys
     if (key.length > 256) {
-        showAuthError('API key is too long (max 256 characters).');
-        return;
-    }
-
-    if (key.length < 16) {
-        showAuthError('API key is too short. Please check your key.');
+        showToast('error', 'Authentication Failed', 'Invalid Credentials.');
         return;
     }
 
     // Reject control characters (except normal ASCII printable range)
     if (/[\x00-\x1f\x7f]/.test(key)) {
-        showAuthError('API key contains invalid characters.');
+        showToast('error', 'Authentication Failed', 'Invalid Credentials.');
         return;
     }
 
@@ -109,18 +105,17 @@ async function handleLogin() {
             verifyBackendConnection();
 
         } else if (response.status === 403) {
-            showAuthError('Invalid API key. Please check and try again.');
+            showToast('error', 'Authentication Failed', 'Invalid credential. Please check and try again.');
 
         } else if (response.status === 429) {
-            showAuthError('Too many attempts. Please wait a minute and try again.');
+            showToast('error', 'Too Many Requests', 'Too many attempts. Please wait a minute and try again.');
 
         } else {
-            showAuthError('Server error. Please try again later.');
+            showToast('error', 'Server Error', 'Server error. Please try again later.');
         }
 
     } catch (err) {
-        showAuthError('Cannot reach the server. Is the backend running?');
-        console.error('Auth verification failed:', err);
+        showToast('error', 'Connection Refused', "Couldn't reach to the server.");
 
     } finally {
         submitBtn.disabled = false;
@@ -133,29 +128,28 @@ async function handleLogin() {
     }
 }
 
-function showAuthError(message) {
-    const errorEl = document.getElementById('auth-error');
-
-    if (errorEl) {
-        errorEl.textContent = message;
-        errorEl.classList.remove('hidden');
-    }
-}
-
+// showAuthError removed to route everything neatly through showToast
 function handleLogout() {
     clearApiKey();
     resetApp();
     showAuthGate();
-    showToast('info', 'Logged Out', 'Your API key has been cleared from this session.');
+    showToast('info', 'Logged Out', 'Logged Out Successfully');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     if (isAuthenticated()) {
         showMainApp();
-        verifyBackendConnection();
     } else {
         showAuthGate();
     }
+
+    // Always check backend status on load, regardless of auth state,
+    // so the indicator never gets stuck on "Checking Pipeline...".
+    verifyBackendConnection();
+
+    setInterval(() => {
+        if (!window.analysisComplete) verifyBackendConnection();
+    }, 15000);
 
     const apiKeyInput = document.getElementById('api-key-input');
 
@@ -171,35 +165,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function verifyBackendConnection() {
     const indicator = document.getElementById('status-indicator');
-
     if (!indicator) return;
+
     indicator.innerHTML = `
         <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span>
         <span class="text-slate-500">Checking Pipeline...</span>
     `;
-    
+
     try {
         const ping = await fetch(`${window.APP_CONFIG.BACKEND_URL}/`);
-
+        
         if (ping.ok) {
             indicator.innerHTML = `
                 <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
                 <span class="text-emerald-400 font-medium">System Ready</span>
             `;
         } else {
-            throw new Error();
+            throw new Error("Server responded with an error.");
         }
     } catch (err) {
         indicator.innerHTML = `
             <span class="w-2 h-2 rounded-full bg-red-500 animate-bounce"></span>
             <span class="text-red-400 font-bold">System Offline</span>
         `;
-        showToast('error', 'System Offline', 'The compliance network is currently offline. Please try again later.');
-        console.error('Connection Error: FastAPI backend is offline.');
+        
+        if (typeof showToast === 'function') {
+            showToast('error', 'System Offline');
+        }
     }
 }
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; 
+
+// Repairs duplicate or missing task IDs within each department, in place.
+// Runs once on the raw backend/demo response, before it reaches showDashboard()
+// or window.taskData — so card badges and exportTasks() can never drift apart,
+// since both read the exact same corrected id field on the same object.
+function assignUniqueTaskIds(data) {
+    if (!data || !Array.isArray(data.departments)) return data;
+
+    data.departments.forEach(dept => {
+        if (!Array.isArray(dept.tasks) || dept.tasks.length === 0) return;
+
+        const seen = new Set();
+        let needsReassignment = false;
+
+        dept.tasks.forEach(task => {
+            const id = task.id;
+            if (!id || seen.has(id)) {
+                needsReassignment = true;
+            }
+            seen.add(id);
+        });
+
+        if (!needsReassignment) return;
+
+        // Reuse the existing letter prefix (e.g. "IT" from "IT-001") so generated
+        // IDs still look department-appropriate; fall back to the department name.
+        const firstExistingId = dept.tasks.find(t => t.id)?.id || '';
+        const prefixMatch = firstExistingId.match(/^([A-Za-z]+)/);
+        const prefix = prefixMatch
+            ? prefixMatch[1]
+            : (dept.name || 'TASK').replace(/[^A-Za-z]/g, '').slice(0, 2).toUpperCase() || 'TS';
+
+        dept.tasks.forEach((task, idx) => {
+            task.id = `${prefix}-${String(idx + 1).padStart(3, '0')}`;
+        });
+    });
+
+    return data;
+}
 
 const MIN_FILE_SIZE_BYTES = 10; 
 
@@ -223,7 +258,7 @@ function validateFile(file) {
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-        showToast('error', 'File Too Large', `Maximum file size is 50 MB. Your file is ${(file.size / (1024*1024)).toFixed(1)} MB.`);
+        showToast('error', 'File Too Large', `Maximum file size is 25 MB. Your file is ${(file.size / (1024*1024)).toFixed(1)} MB.`);
         return false;
     }
     
@@ -290,6 +325,7 @@ async function runDemo() {
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
 
         const demoData = await response.json();
+        assignUniqueTaskIds(demoData);
 
         steps.forEach(step => {
             step.classList.remove('opacity-40');
@@ -318,6 +354,14 @@ async function runDemo() {
         setTimeout(() => {
             procSection.classList.add('hidden');
             showDashboard(demoData);
+            window.analysisComplete = true;
+            const indicator = document.getElementById('status-indicator');
+            if (indicator) {
+                indicator.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
+                    <span class="text-emerald-400 font-medium">Analysis Completed</span>
+                `;
+            }
         }, 600);
 
     } catch (error) {
@@ -333,7 +377,7 @@ async function startProcessing(file) {
 
     if (!isAuthenticated()) {
         showAuthGate();
-        showToast('error', 'Session Expired', 'Please enter your API key again.');
+        showToast('error', 'Session Expired', 'Please enter your credential again.');
         return;
     }
 
@@ -413,12 +457,13 @@ async function startProcessing(file) {
             activeTimeouts.forEach(clearTimeout);
             resetApp();
             showAuthGate();
-            showToast('error', 'Authentication Failed', 'Your API key is invalid. Please re-enter it.');
+            showToast('error', 'Authentication Failed', 'Your credential is invalid. Please re-enter it.');
             return;
         }
 
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
         const actualData = await response.json();
+        assignUniqueTaskIds(actualData);
         activeTimeouts.forEach(clearTimeout);
         steps.forEach(step => {
             step.classList.remove('opacity-40');
@@ -438,6 +483,14 @@ async function startProcessing(file) {
         setTimeout(() => {
             procSection.classList.add('hidden');
             showDashboard(actualData);
+            window.analysisComplete = true;
+            const indicator = document.getElementById('status-indicator');
+            if (indicator) {
+                indicator.innerHTML = `
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
+                    <span class="text-emerald-400 font-medium">Analysis Completed</span>
+                `;
+            }
         }, 800);
         
     } catch (error) {
@@ -494,6 +547,7 @@ function resetApp() {
 
     window.taskData = null;
     window.currentFilter = 'all';
+    window.analysisComplete = false;
     const dashSection = document.getElementById('dashboard-section');
 
     if (dashSection) dashSection.classList.add('hidden');

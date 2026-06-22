@@ -34,7 +34,7 @@
                     <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse"></span>
                     <span class="text-slate-500">Checking Pipeline...</span>
                 </div>
-                <button id="logout-btn" onclick="handleLogout()" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-lg glass-light text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Clear API key and log out">
+                <button id="logout-btn" onclick="handleLogout()" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-lg glass-light text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Clear credential and log out">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
@@ -56,16 +56,16 @@
                         Secure <span class="gradient-text">Authentication</span>
                     </h2>
                     <p class="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
-                        Enter your admin API key to access the ComplianceAI analysis pipeline. Your key is stored only in this browser tab and cleared on close.
+                        Enter your admin credential to access the ComplianceAI analysis pipeline. Your credential is stored only in this browser tab and cleared on close.
                     </p>
                 </div>
                 <div class="glass rounded-2xl p-8">
-                    <label for="api-key-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">API Key</label>
+                    <label for="api-key-input" class="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Credential</label>
                     <div class="relative mb-4">
                         <input
                             type="password"
                             id="api-key-input"
-                            placeholder="Enter your admin API key"
+                            placeholder="Enter your admin credential"
                             autocomplete="off"
                             spellcheck="false"
                             class="w-full bg-surface-2 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 transition-all font-mono"
@@ -98,7 +98,7 @@
                             <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                             </svg>
-                            <span>Your key is validated against the server and stored only in sessionStorage. It is never embedded in source code, logged, or sent to third parties.</span>
+                            <span>Your credential is validated against the server and stored only in sessionStorage. It is never embedded in source code, logged, or sent to third parties.</span>
                         </div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                     </div>
                     <p class="text-white font-semibold text-lg mb-1">Drop your compliance PDF here</p>
                     <p class="text-slate-500 text-sm">or <span class="text-brand-400 underline underline-offset-4 decoration-brand-400/40">browse files</span> from your computer</p>
-                    <p class="text-slate-600 text-xs mt-3">Supports PDF • Max 50MB</p>
+                    <p class="text-slate-600 text-xs mt-3">Supports PDF • Max 25MB</p>
                 </div>
             </div>
             <div class="text-center mt-6">
