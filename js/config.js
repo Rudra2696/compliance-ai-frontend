@@ -1,5 +1,5 @@
 window.APP_CONFIG = {
-    BACKEND_URL: "http://localhost:8000"
+    BACKEND_URL: "https://compliance-ai-backend-ks0k.onrender.com"
 };
 tailwind.config = {
     darkMode: 'class',
