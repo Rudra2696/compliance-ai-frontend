@@ -17,7 +17,7 @@ function showDashboard(data) {
     if (statusInd) {
         statusInd.innerHTML = `
             <span class="w-2 h-2 rounded-full bg-emerald-400 ring-pulse"></span>
-            <span class="text-slate-400">Analysis Complete</span>
+            <span class="text-slate-400">Analysis Completed</span>
         `;
     }
     const titleEl = document.getElementById('doc-title');
@@ -58,7 +58,7 @@ function showDashboard(data) {
     }
     renderTasks(data.departments);
     setTimeout(() => updateComplianceScore(), 400);
-    showToast('success', 'Analysis Complete', `${totalTasks} obligations mapped out successfully.`);
+    showToast('success', 'Analysis Completed', `${totalTasks} obligations mapped out successfully.`);
 }
 function renderTasks(departments) {
     const container = document.getElementById('tasks-container');
